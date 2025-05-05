@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import products from "../data/products";
 import Navbar from "./Navbar";
 import CategoryFilter from "./CategoryFilter";
@@ -6,6 +6,7 @@ import ProductList from "./ProductList";
 import CartModal from "./CartModal";
 import AddToCartToast from "./AddToCartToast";
 import CheckoutForm from "./CheckoutForm";
+import HeroSection from "./HeroSection";
 
 const Ecommerce = () => {
   const [cart, setCart] = useState([]);
@@ -15,11 +16,12 @@ const Ecommerce = () => {
   const [showToast, setShowToast] = useState(false);
   const [lastAddedProduct, setLastAddedProduct] = useState("");
 
+  const categoryFilterRef = useRef(null); // 🔗 Nueva referencia para CategoryFilter
+
   const filteredProducts = selectedCategory === "todos" 
     ? products 
     : products.filter(product => product.category === selectedCategory);
 
-  // Función modificada para agrupar productos por id
   const addToCart = (product) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
@@ -36,79 +38,37 @@ const Ecommerce = () => {
     setShowToast(true);
   };
 
-  // Función para aumentar cantidad
-  const increaseQuantity = (productId) => {
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
-  };
-
-  // Función para disminuir cantidad (no baja de 1)
-  const decreaseQuantity = (productId) => {
-    setCart(prevCart =>
-      prevCart.map(item =>
-        item.id === productId
-          ? { 
-              ...item, 
-              quantity: item.quantity > 1 ? item.quantity - 1 : 1 
-            }
-          : item
-      )
-    );
-  };
-
-  // Función para eliminar producto completamente
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-  };
-
-  // Calcula el total considerando las cantidades
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  const handleConfirmPayment = () => {
-    setCart([]);
-    setIsCheckingOut(false);
-    setIsCartOpen(false);
-  };
-
-  const resetToHome = () => {
-    setCart([]);
-    setIsCartOpen(false);
-    setIsCheckingOut(false);
-    setSelectedCategory("todos");
-    setShowToast(false);
-    window.scrollTo(0, 0);
-  };
-
-  // Calcula la cantidad total de items para el badge del carrito
-  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar 
-        cartCount={cartItemsCount}  // Ahora usa la cantidad total de items
+        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         openCart={() => setIsCartOpen(true)}
-        onHomeClick={resetToHome}
+        onHomeClick={() => window.scrollTo(0, 0)}
+        showCart={!isCheckingOut}
       />
-      
+
+      <HeroSection scrollToCategory={() => categoryFilterRef.current.scrollIntoView({ behavior: "smooth" })} />
+
       <main className="container mx-auto p-4">
         {isCheckingOut ? (
           <CheckoutForm 
             cart={cart}
-            total={total}
-            onConfirmPayment={handleConfirmPayment}
+            total={cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+            onConfirmPayment={() => {
+              setCart([]);
+              setIsCheckingOut(false);
+              setIsCartOpen(false);
+            }}
             onCancel={() => setIsCheckingOut(false)}
           />
         ) : (
           <>
-            <CategoryFilter 
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
+            <div ref={categoryFilterRef}>  {/* 📌 Referencia para desplazamiento */}
+              <CategoryFilter 
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+            </div>
             <ProductList 
               products={filteredProducts} 
               addToCart={addToCart} 
@@ -121,14 +81,12 @@ const Ecommerce = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
-        removeFromCart={removeFromCart}
-        total={total}
+        removeFromCart={(productId) => setCart(cart.filter(item => item.id !== productId))}
+        total={cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
         onCheckout={() => {
           setIsCheckingOut(true);
           setIsCartOpen(false);
         }}
-        increaseQuantity={increaseQuantity}
-        decreaseQuantity={decreaseQuantity}
       />
 
       <AddToCartToast 

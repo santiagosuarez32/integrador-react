@@ -1,68 +1,119 @@
-import { useState } from 'react';
+import { useFormik } from 'formik';
+import { useState, useRef, useEffect } from 'react';
 
 const CheckoutForm = ({ cart, total, onConfirmPayment, onCancel }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    correo: ''
+  const modalRef = useRef();
+
+  const formik = useFormik({
+    initialValues: {
+      nombre: '',
+      apellido: '',
+      correo: ''
+    },
+    validate: values => {
+      const errors = {};
+      
+      if (!values.nombre || values.nombre.length < 5) {
+        errors.nombre = 'Mínimo 5 caracteres';
+      }
+      
+      if (!values.apellido || values.apellido.length < 5) {
+        errors.apellido = 'Mínimo 5 caracteres';
+      }
+      
+      if (!values.correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.correo) || values.correo.length < 8) {
+        errors.correo = 'Debe incluir @ y tener mínimo 8 caracteres';
+      }
+      
+      return errors;
+    },
+    onSubmit: () => {
+      setShowConfirmation(true);
+    }
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setShowConfirmation(true);
-  };
 
   const handleFinalConfirmation = () => {
     onConfirmPayment();
     setShowConfirmation(false);
   };
 
+  // Función para estilos del input
+  const getInputStyle = (fieldName) => {
+    const hasValue = formik.values[fieldName];
+    const isTouched = formik.touched[fieldName];
+    const hasError = formik.errors[fieldName];
+
+    let style = 'w-full p-2 border rounded focus:ring-1 focus:outline-none transition-colors';
+
+    if ((!hasValue || hasError) && isTouched) {
+      style += ' border-red-500 focus:border-red-500 focus:ring-red-500';
+    } 
+    else if (hasValue && !hasError && isTouched) {
+      style += ' border-green-500 focus:border-green-500 focus:ring-green-500';
+    }
+    else {
+      style += ' border-gray-300 focus:border-blue-500 focus:ring-blue-500';
+    }
+
+    return style;
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 p-4 overflow-hidden">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 p-4 overflow-y-auto">
+      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg my-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Finalizar Compra</h2>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={formik.handleSubmit} className="space-y-4">
+          {/* Nombre */}
           <div>
             <label className="block mb-1 text-gray-700">Nombre</label>
             <input
               name="nombre"
               type="text"
-              value={formData.nombre}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              value={formik.values.nombre}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={getInputStyle('nombre')}
               required
             />
+            {formik.touched.nombre && formik.errors.nombre && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.nombre}</p>
+            )}
           </div>
 
+          {/* Apellido */}
           <div>
             <label className="block mb-1 text-gray-700">Apellido</label>
             <input
               name="apellido"
               type="text"
-              value={formData.apellido}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              value={formik.values.apellido}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={getInputStyle('apellido')}
               required
             />
+            {formik.touched.apellido && formik.errors.apellido && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.apellido}</p>
+            )}
           </div>
 
+          {/* Correo */}
           <div>
             <label className="block mb-1 text-gray-700">Correo Electrónico</label>
             <input
               name="correo"
               type="email"
-              value={formData.correo}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              value={formik.values.correo}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              className={getInputStyle('correo')}
               required
             />
+            {formik.touched.correo && formik.errors.correo && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.correo}</p>
+            )}
           </div>
 
           <div className="flex justify-between pt-4">
@@ -75,7 +126,8 @@ const CheckoutForm = ({ cart, total, onConfirmPayment, onCancel }) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              disabled={!formik.isValid}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
             >
               Confirmar Compra
             </button>
@@ -86,7 +138,10 @@ const CheckoutForm = ({ cart, total, onConfirmPayment, onCancel }) => {
       {/* Modal de confirmación */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4">
+          <div 
+            ref={modalRef}
+            className="bg-white p-6 rounded-lg max-w-sm w-full mx-4"
+          >
             <h3 className="text-xl font-bold mb-4">Confirmar Compra</h3>
             <p className="mb-2">Total: <span className="font-semibold">${total.toFixed(2)}</span></p>
             <p className="mb-6">¿Estás seguro que deseas completar la compra?</p>
