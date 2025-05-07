@@ -4,7 +4,7 @@ import './../Hero.css'; // Archivo CSS para estilos personalizados
 
 const HeroSection = ({ scrollToCategory }) => { // ⬅ Cambio de nombre de prop
   return (
-    <section className="hero h-screen w-full flex items-center justify-center relative overflow-hidden">
+    <section className="hero h-screen w-full flex items-center justify-center relative overflow-hidden z-10">
       {/* Fondo animado */}
       <div className="hero-bg absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-800 opacity-90"></div>
       
@@ -30,7 +30,7 @@ const HeroSection = ({ scrollToCategory }) => { // ⬅ Cambio de nombre de prop
               Ver Productos
             </button>
             <Link 
-              to="/ofertas" 
+             
               className="btn-secondary px-8 py-3 rounded-full font-semibold text-lg transition-all hover:scale-105"
             >
               Ofertas Especiales

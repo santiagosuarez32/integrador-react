@@ -32,7 +32,7 @@ const CartModal = ({
           ) : (
             <div className="divide-y">
               {cart.map((item) => (
-                <div key={`${item.id}-${cart.indexOf(item)}`} className="py-3 flex items-center justify-between">
+                <div key={item.id} className="py-3 flex items-center justify-between">
                   {/* Imagen más pequeña */}
                   <img 
                     src={item.image} 

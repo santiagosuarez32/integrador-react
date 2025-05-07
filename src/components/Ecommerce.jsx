@@ -1,27 +1,28 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom"; 
 import products from "../data/products";
 import Navbar from "./Navbar";
 import CategoryFilter from "./CategoryFilter";
 import ProductList from "./ProductList";
 import CartModal from "./CartModal";
 import AddToCartToast from "./AddToCartToast";
-import CheckoutForm from "./CheckoutForm";
 import HeroSection from "./HeroSection";
 
 const Ecommerce = () => {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("todos");
   const [showToast, setShowToast] = useState(false);
   const [lastAddedProduct, setLastAddedProduct] = useState("");
 
-  const categoryFilterRef = useRef(null); // 🔗 Nueva referencia para CategoryFilter
+  const categoryFilterRef = useRef(null);
+  const navigate = useNavigate();
 
   const filteredProducts = selectedCategory === "todos" 
     ? products 
     : products.filter(product => product.category === selectedCategory);
 
+  // ⬅ Agregar producto al carrito
   const addToCart = (product) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
@@ -38,55 +39,76 @@ const Ecommerce = () => {
     setShowToast(true);
   };
 
+  // ⬅ Aumentar cantidad del producto
+  const increaseQuantity = (productId) => {
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item.id === productId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
+  };
+
+  // ⬅ Disminuir cantidad y eliminar si es menor a 1
+  const decreaseQuantity = (productId) => {
+    setCart(prevCart => prevCart
+      .map(item =>
+        item.id === productId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+      .filter(item => item.quantity > 0) // ⬅ Filtra productos con cantidad < 1
+    );
+  };
+
+  // ⬅ Eliminar producto completamente
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+  };
+
+  // ⬅ Redirigir al checkout solo si hay productos
+  const handleGoToCheckout = () => {
+    if (cart.length > 0) {
+      navigate("/checkout");
+    } else {
+      alert("No puedes ir al checkout con el carrito vacío."); // ⬅ Prevención de error
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar 
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         openCart={() => setIsCartOpen(true)}
         onHomeClick={() => window.scrollTo(0, 0)}
-        showCart={!isCheckingOut}
+        showCart={true}
       />
 
       <HeroSection scrollToCategory={() => categoryFilterRef.current.scrollIntoView({ behavior: "smooth" })} />
 
       <main className="container mx-auto p-4">
-        {isCheckingOut ? (
-          <CheckoutForm 
-            cart={cart}
-            total={cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
-            onConfirmPayment={() => {
-              setCart([]);
-              setIsCheckingOut(false);
-              setIsCartOpen(false);
-            }}
-            onCancel={() => setIsCheckingOut(false)}
+        <div ref={categoryFilterRef}>
+          <CategoryFilter 
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
           />
-        ) : (
-          <>
-            <div ref={categoryFilterRef}>  {/* 📌 Referencia para desplazamiento */}
-              <CategoryFilter 
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-              />
-            </div>
-            <ProductList 
-              products={filteredProducts} 
-              addToCart={addToCart} 
-            />
-          </>
-        )}
+        </div>
+        <ProductList 
+          products={filteredProducts} 
+          addToCart={addToCart} 
+        />
       </main>
 
       <CartModal
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
-        removeFromCart={(productId) => setCart(cart.filter(item => item.id !== productId))}
+        removeFromCart={removeFromCart} 
         total={cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
-        onCheckout={() => {
-          setIsCheckingOut(true);
-          setIsCartOpen(false);
-        }}
+        increaseQuantity={increaseQuantity} // ⬅ Agregado para modificar cantidades
+        decreaseQuantity={decreaseQuantity} // ⬅ Agregado para modificar cantidades
+        onCheckout={handleGoToCheckout} // ⬅ Redirige a "/checkout" solo si hay productos
       />
 
       <AddToCartToast 

@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
-const Navbar = ({ cartCount, openCart, onHomeClick, showCart = true }) => {
+
+const Navbar = ({ scrollToCategory, cartCount, openCart, onHomeClick, showCart = true }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-blue-600 text-white p-4 sticky top-0 z-10">
+    <nav className="bg-blue-600 text-white p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo a la izquierda */}
         <Link 
@@ -30,7 +31,7 @@ const Navbar = ({ cartCount, openCart, onHomeClick, showCart = true }) => {
             </li>
             <li>
               <Link 
-                to="/productos" 
+                onClick={scrollToCategory}
                 className="hover:text-blue-200 transition-colors"
               >
                 Productos
