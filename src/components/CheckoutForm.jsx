@@ -28,7 +28,7 @@ const CheckoutForm = ({ onConfirmPayment }) => {
       return errors;
     },
     onSubmit: () => {
-      setShowConfirmation(true);
+      setShowConfirmation(true); // ⬅ Muestra el modal de confirmación al enviar el formulario
     }
   });
 
@@ -53,18 +53,17 @@ const CheckoutForm = ({ onConfirmPayment }) => {
 
   // 🔹 Función para determinar el color del borde del input
   const getInputStyle = (fieldName) => {
-    const hasValue = formik.values[fieldName];
     const isTouched = formik.touched[fieldName];
     const hasError = formik.errors[fieldName];
 
-    let style = "w-full p-2 border rounded focus:ring-1 focus:outline-none transition-colors";
+    let style = "w-full p-2 border rounded transition-colors";
 
     if (hasError && isTouched) {
-      style += " border-red-700 focus:border-red-700 focus:ring-red-700"; // 🔴 Bordes rojos si hay error
-    } else if (hasValue && !hasError && isTouched) {
-      style += " border-green-700 focus:border-green-700 focus:ring-green-700"; // 🟢 Bordes verdes si está correcto
+      style += " border-red-700"; // 🔴 Bordes rojos si hay error
+    } else if (!hasError && isTouched) {
+      style += " border-green-700"; // 🟢 Bordes verdes si está correcto
     } else {
-      style += " border-black"; // 🎨 Color base
+      style += " border-black"; // ⬛ Bordes negros por defecto
     }
 
     return style;
@@ -82,8 +81,12 @@ const CheckoutForm = ({ onConfirmPayment }) => {
               name="nombre"
               type="text"
               {...formik.getFieldProps("nombre")}
+              onBlur={formik.handleBlur} // ⬅ Asegura que se registre `touched`
               className={getInputStyle("nombre")}
             />
+            {formik.touched.nombre && formik.errors.nombre && (
+              <p className="text-red-700 text-sm mt-1">{formik.errors.nombre}</p>
+            )}
           </div>
           <div>
             <label className="block mb-1 text-gray-700">Apellido</label>
@@ -91,8 +94,12 @@ const CheckoutForm = ({ onConfirmPayment }) => {
               name="apellido"
               type="text"
               {...formik.getFieldProps("apellido")}
+              onBlur={formik.handleBlur} // ⬅ Asegura que se registre `touched`
               className={getInputStyle("apellido")}
             />
+            {formik.touched.apellido && formik.errors.apellido && (
+              <p className="text-red-700 text-sm mt-1">{formik.errors.apellido}</p>
+            )}
           </div>
           <div>
             <label className="block mb-1 text-gray-700">Correo Electrónico</label>
@@ -100,8 +107,12 @@ const CheckoutForm = ({ onConfirmPayment }) => {
               name="correo"
               type="email"
               {...formik.getFieldProps("correo")}
+              onBlur={formik.handleBlur} // ⬅ Asegura que se registre `touched`
               className={getInputStyle("correo")}
             />
+            {formik.touched.correo && formik.errors.correo && (
+              <p className="text-red-700 text-sm mt-1">{formik.errors.correo}</p>
+            )}
           </div>
 
           <div className="flex justify-between pt-4">
@@ -123,6 +134,7 @@ const CheckoutForm = ({ onConfirmPayment }) => {
         </form>
       </div>
 
+      {/* Modal de confirmación */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div ref={modalRef} className="bg-white p-6 rounded-lg max-w-sm w-full mx-4 text-center">
@@ -147,6 +159,7 @@ const CheckoutForm = ({ onConfirmPayment }) => {
         </div>
       )}
 
+      {/* Modal de agradecimiento */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4 text-center">
