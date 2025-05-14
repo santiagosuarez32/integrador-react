@@ -45,6 +45,14 @@ const Navbar = ({ scrollToCategory, cartCount, openCart, onHomeClick, showCart =
                 Nosotros
               </Link>
             </li>
+            <li>
+              <Link 
+                to="/contacto" 
+                className="hover:text-blue-200 transition-colors"
+              >
+                Contacto
+              </Link>
+            </li>
           </ul>
         </div>
 

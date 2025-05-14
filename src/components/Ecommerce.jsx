@@ -87,7 +87,7 @@ const Ecommerce = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <Navbar
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
         openCart={() => setIsCartOpen(true)}
@@ -135,7 +135,7 @@ const Ecommerce = () => {
         </div>
       </div>
 
-      <main className="container mx-auto p-4">
+      <main className="container mx-auto p-4 flex-grow">
         <div ref={categoryFilterRef}>
           <CategoryFilter
             selectedCategory={selectedCategory}
@@ -161,6 +161,11 @@ const Ecommerce = () => {
         onClose={() => setShowToast(false)}
         productName={lastAddedProduct}
       />
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white text-center p-4 mt-8">
+        <p>© {new Date().getFullYear()} Mi Ecommerce. Todos los derechos reservados.</p>
+      </footer>
     </div>
   );
 };
