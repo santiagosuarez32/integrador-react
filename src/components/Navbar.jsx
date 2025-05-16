@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 
-const Navbar = ({ scrollToCategory, cartCount, openCart, onHomeClick, showCart = true }) => {
+const Navbar = ({ cartCount, openCart, onHomeClick, showCart = true }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -29,14 +29,7 @@ const Navbar = ({ scrollToCategory, cartCount, openCart, onHomeClick, showCart =
                 Home
               </Link>
             </li>
-            <li>
-              <Link 
-                onClick={scrollToCategory}
-                className="hover:text-blue-200 transition-colors"
-              >
-                Productos
-              </Link>
-            </li>
+            
             <li>
               <Link 
                 to="/nosotros" 
@@ -129,15 +122,7 @@ const Navbar = ({ scrollToCategory, cartCount, openCart, onHomeClick, showCart =
                   Home
                 </Link>
               </li>
-              <li>
-                <Link 
-                  to="/productos" 
-                  className="block py-2 px-4 hover:text-blue-200 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Productos
-                </Link>
-              </li>
+            
               <li>
                 <Link 
                   to="/nosotros" 
